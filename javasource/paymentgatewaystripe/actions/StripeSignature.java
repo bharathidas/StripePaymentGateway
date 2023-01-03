@@ -22,24 +22,33 @@ import com.stripe.model.PaymentIntent;
 import com.stripe.model.PaymentMethod;
 import com.stripe.model.StripeObject;
 import com.stripe.net.Webhook;
+import com.mendix.systemwideinterfaces.core.IMendixObject;
 
+/**
+ * Java action to check the generated signature from Stripe Webhooks
+ */
 public class StripeSignature extends CustomJavaAction<java.lang.Boolean>
 {
 	private java.lang.String endpointSecret;
 	private java.lang.String payload;
 	private java.lang.String sigHeader;
+	private IMendixObject __RESTServiceEntity;
+	private paymentgatewaystripe.proxies.RESTService RESTServiceEntity;
 
-	public StripeSignature(IContext context, java.lang.String endpointSecret, java.lang.String payload, java.lang.String sigHeader)
+	public StripeSignature(IContext context, java.lang.String endpointSecret, java.lang.String payload, java.lang.String sigHeader, IMendixObject RESTServiceEntity)
 	{
 		super(context);
 		this.endpointSecret = endpointSecret;
 		this.payload = payload;
 		this.sigHeader = sigHeader;
+		this.__RESTServiceEntity = RESTServiceEntity;
 	}
 
 	@java.lang.Override
 	public java.lang.Boolean executeAction() throws Exception
 	{
+		this.RESTServiceEntity = this.__RESTServiceEntity == null ? null : paymentgatewaystripe.proxies.RESTService.initialize(getContext(), __RESTServiceEntity);
+
 		// BEGIN USER CODE
 		final ILogNode Ilogger = Core.getLogger("Payment Signature validation start");
 		 Event event = null;
@@ -64,6 +73,7 @@ public class StripeSignature extends CustomJavaAction<java.lang.Boolean>
 		  if (dataObjectDeserializer.getObject().isPresent()) {
 		    stripeObject = dataObjectDeserializer.getObject().get();
 		  } else {
+			  Ilogger.info("Unable to deserialize,Kindly update the latest JARs");
 		    // Deserialization failed, probably due to an API version mismatch.
 		    // Refer to the Javadoc documentation on `EventDataObjectDeserializer` for
 		    // instructions on how to handle this case, or return an error here.
@@ -71,6 +81,7 @@ public class StripeSignature extends CustomJavaAction<java.lang.Boolean>
 
 		  // Handle the event
 		  Ilogger.info("Event Type:"+event.getType());
+		  RESTServiceEntity.setJSONValue(stripeObject.toJson());
 		  switch (event.getType()) {
 		    case "payment_intent.succeeded":
 		      PaymentIntent paymentIntent = (PaymentIntent) stripeObject;

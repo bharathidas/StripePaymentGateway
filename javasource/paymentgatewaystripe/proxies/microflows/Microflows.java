@@ -151,9 +151,4 @@ public class Microflows
 		params.put("Helper", _helper == null ? null : _helper.getMendixObject());
 		return (java.lang.String) Core.microflowCall("PaymentGatewayStripe.SUB_PaymentLink_Donate").withParams(params).execute(context);
 	}
-	public static java.lang.String sUB_PaymentLink_Donate_QR(IContext context)
-	{
-		Map<java.lang.String, Object> params = new HashMap<>();
-		return (java.lang.String) Core.microflowCall("PaymentGatewayStripe.SUB_PaymentLink_Donate_QR").withParams(params).execute(context);
-	}
 }
